@@ -1,0 +1,15 @@
+package templates
+
+templ Index() {
+    <h1>Welcome to Chattr</h1>
+
+    <div id="chat-container"
+        hx-ext="ws"
+        ws-connect="/ws">
+        <div id="chat-list" class="chat-list"></div>
+        <form hx-ws-send="true">
+            <input type="text" name="message" placeholder="Chattr">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+}
