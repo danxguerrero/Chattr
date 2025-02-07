@@ -6,7 +6,8 @@ templ Index() {
 
         <div id="chat-container"
             hx-ext="ws"
-            ws-connect="/ws">
+            ws-connect="/ws"
+            ws-headers='{"Authorization": window.Clerk.session?.getToken()}'>
             <div id="chat-list" class="chat-list"></div>
             <form ws-send>
                 <input type="text" name="message" placeholder="Chattr">

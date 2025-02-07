@@ -41,7 +41,7 @@ func Index() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Welcome to Chattr</h1><div id=\"chat-container\" hx-ext=\"ws\" ws-connect=\"/ws\"><div id=\"chat-list\" class=\"chat-list\"></div><form ws-send><input type=\"text\" name=\"message\" placeholder=\"Chattr\"> <button type=\"submit\">Send</button></form></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Welcome to Chattr</h1><div id=\"chat-container\" hx-ext=\"ws\" ws-connect=\"/ws\" ws-headers=\"{&#34;Authorization&#34;: window.Clerk.session?.getToken()}\"><div id=\"chat-list\" class=\"chat-list\"></div><form ws-send><input type=\"text\" name=\"message\" placeholder=\"Chattr\"> <button type=\"submit\">Send</button></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
