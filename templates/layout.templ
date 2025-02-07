@@ -9,9 +9,20 @@ templ Layout() {
         <title>Chattr</title>
         <script src="https://unpkg.com/htmx.org@1.9.10"></script>
         <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+        <script>
+            window.Clerk.onReady(()=> {
+                window.Clerk.mountSignIn("#sign-in");
+                window.Clerk.mountUserButton("#user=button");
+            });
+        </script>
         <link rel="stylesheet" href="/static/styles.css">
     </head>
     <body>
+        <div id="auth">
+            <div id="sign-in"></div>
+            <div id="user-button"></div>
+        </div>
+        
         <div class="container">
             { children... }
         </div>
