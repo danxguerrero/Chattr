@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/danxguerrero/chattr/handlers"
+	"github.com/danxguerrero/chattr/middleware"
 	"github.com/danxguerrero/chattr/templates"
 
 	"github.com/labstack/echo/v4"
@@ -19,7 +20,7 @@ func main() {
 	})
 
 	// WebSocket Route
-	e.GET("/ws", handlers.HandleWebSocket)
+	e.GET("/ws", handlers.HandleWebSocket, middleware.AuthMiddleware)
 
 	// Start WebSocker broadcaster in a goroutine
 	go handlers.BroadcastMessages()
