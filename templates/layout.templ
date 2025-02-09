@@ -15,34 +15,40 @@ templ Layout() {
             data-clerk-publishable-key="pk_test_dW5pcXVlLWJpc29uLTk4LmNsZXJrLmFjY291bnRzLmRldiQ"
             src="https://unique-bison-98.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
             type="text/javascript"
-            onload="window.startClerk()"
         ></script>
         <script>
             window.addEventListener('load', async function () {
-                await Clerk.load()
-
-                if (Clerk.user) {
-                    document.getElementById('container').innerHTML = `
-                        <div id="user-button"></div>
-                    `
-                    const userButtonDiv = document.getElementById('user-button')
-                    Clerk.mountUserButton(userButtonDiv)
-                } else {
-                    document.getElementById('container').innerHTML = `
-                        <div id="sign-in"></div>
-                    `
-                    const signInDiv = document.getElementById('sign-in')
-                    Clerk.mountSignIn(signInDiv, {
-                        routing: "path",
-                        path: "/",
-                        redirectUrl: "/",
-                    })
+                try {
+                    await window.Clerk.load();
+                    const authDiv = document.getElementById('auth');
+                    
+                    if (window.Clerk.user) {
+                        console.log('User is signed in');
+                        authDiv.innerHTML = '<div id="user-button"></div>';
+                        window.Clerk.mountUserButton(document.getElementById('user-button'));
+                    } else {
+                        console.log('No user signed in');
+                        authDiv.innerHTML = '<div id="sign-in"></div>';
+                        window.Clerk.mountSignIn(document.getElementById('sign-in'));
+                    }
+                } catch (error) {
+                    console.error('Error initializing Clerk:', error);
                 }
-            })
+            });
         </script>
+        <style>
+            #auth {
+                padding: 1rem;
+            }
+            #user-button {
+                min-width: 200px;
+            }
+        </style>
         <link rel="stylesheet" href="/static/styles.css">
     </head>
     <body>
+        <div id="auth"></div>
+        
         <div id="container">
             { children... }
         </div>

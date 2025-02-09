@@ -3,16 +3,6 @@ package templates
 templ Index() {
     @Layout() {
         <h1>Welcome to Chattr</h1>
-
-        <div id="chat-container"
-            hx-ext="ws"
-            ws-connect="/ws"
-            ws-headers='{"Authorization": window.Clerk.session?.getToken()}'>
-            <div id="chat-list" class="chat-list"></div>
-            <form ws-send>
-                <input type="text" name="message" placeholder="Chattr">
-                <button type="submit">Send</button>
-            </form>
-        </div>
+        <p>Please sign in to access the chat.</p>
     }
 }
