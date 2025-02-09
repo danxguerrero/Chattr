@@ -9,24 +9,43 @@ templ Layout() {
         <title>Chattr</title>
         <script src="https://unpkg.com/htmx.org@1.9.10"></script>
         <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+        <script
+            async
+            crossorigin="anonymous"
+            data-clerk-publishable-key="pk_test_dW5pcXVlLWJpc29uLTk4LmNsZXJrLmFjY291bnRzLmRldiQ"
+            src="https://unique-bison-98.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+            type="text/javascript"
+            onload="window.startClerk()"
+        ></script>
         <script>
-            window.Clerk.onReady(()=> {
-                window.Clerk.mountSignIn("#sign-in");
-                window.Clerk.mountUserButton("#user=button");
-            });
+            window.addEventListener('load', async function () {
+                await Clerk.load()
+
+                if (Clerk.user) {
+                    document.getElementById('container').innerHTML = `
+                        <div id="user-button"></div>
+                    `
+                    const userButtonDiv = document.getElementById('user-button')
+                    Clerk.mountUserButton(userButtonDiv)
+                } else {
+                    document.getElementById('container').innerHTML = `
+                        <div id="sign-in"></div>
+                    `
+                    const signInDiv = document.getElementById('sign-in')
+                    Clerk.mountSignIn(signInDiv, {
+                        routing: "path",
+                        path: "/",
+                        redirectUrl: "/",
+                    })
+                }
+            })
         </script>
         <link rel="stylesheet" href="/static/styles.css">
     </head>
     <body>
-        <div id="auth">
-            <div id="sign-in"></div>
-            <div id="user-button"></div>
-        </div>
-        
-        <div class="container">
+        <div id="container">
             { children... }
         </div>
     </body>
     </html>
 }
-
