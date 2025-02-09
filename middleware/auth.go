@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/labstack/echo/v4"
@@ -25,6 +26,26 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		c.Set("userID", session.UserID)
+		return next(c)
+	}
+}
+
+func RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		authHeader := c.Request().Header.Get("Authorization")
+		if authHeader == "" {
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
+
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
+
+		if parts[1] == "" {
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
+
 		return next(c)
 	}
 }

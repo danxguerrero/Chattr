@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/danxguerrero/chattr/handlers"
+	"github.com/danxguerrero/chattr/middleware"
 	"github.com/danxguerrero/chattr/templates"
 
 	"github.com/labstack/echo/v4"
@@ -26,10 +27,10 @@ func main() {
 	// Protected routes
 	e.GET("/chat", func(c echo.Context) error {
 		return templates.Chat().Render(c.Request().Context(), c.Response().Writer)
-	})
+	}, middleware.RequireAuth)
 
 	// WebSocket route (protected)
-	e.GET("/ws", handlers.HandleWebSocket)
+	e.GET("/ws", handlers.HandleWebSocket, middleware.RequireAuth)
 
 	// Start WebSocker broadcaster in a goroutine
 	go handlers.BroadcastMessages()
