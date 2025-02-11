@@ -6,13 +6,13 @@ toolchain go1.23.5
 
 require (
 	github.com/a-h/templ v0.3.833
-	github.com/clerkinc/clerk-sdk-go v1.49.1
+	github.com/clerk/clerk-sdk-go/v2 v2.2.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.13.3
 )
 
 require (
-	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

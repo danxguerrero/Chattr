@@ -2,50 +2,50 @@ package middleware
 
 import (
 	"net/http"
-	"os"
-	"strings"
 
-	"github.com/clerkinc/clerk-sdk-go/clerk"
+	"github.com/clerk/clerk-sdk-go/v2"
+	clerkhttp "github.com/clerk/clerk-sdk-go/v2/http"
+	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/labstack/echo/v4"
 )
 
-// Create a new Clerk Client
-var clerkClient, err = clerk.NewClient(os.Getenv("CLERK_SECRET_KEY"))
+var clerkClient clerk.Client
 
-// Validates the Clerk session
-func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		sessionToken := c.Request().Header.Get("Authorization")
-		if sessionToken == "" {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "No session token"})
-		}
-
-		session, err := clerkClient.Sessions().Verify(sessionToken, "")
-		if err != nil || session.Status != "active" {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid session"})
-		}
-
-		c.Set("userID", session.UserID)
-		return next(c)
-	}
+func InitClerk() {
+	// Initialize Clerk client with your secret key
+	clerk.SetKey("sk_test_zj0PpSZ82t3zfgtWZSzwnugdsnu1DnkPVK0mz8cVqs")
 }
 
+// RequireAuth adapts Clerk's middleware for Echo
 func RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		authHeader := c.Request().Header.Get("Authorization")
-		if authHeader == "" {
-			return c.Redirect(http.StatusTemporaryRedirect, "/")
-		}
+	return echo.WrapHandler(clerkhttp.WithHeaderAuthorization()(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c := r.Context()
+			claims, ok := clerk.SessionClaimsFromContext(c)
+			if !ok {
+				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+				return
+			}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			return c.Redirect(http.StatusTemporaryRedirect, "/")
-		}
+			// Get the Echo context
+			ec := r.Context().Value("echo").(echo.Context)
 
-		if parts[1] == "" {
-			return c.Redirect(http.StatusTemporaryRedirect, "/")
-		}
+			// Verify the user
+			usr, err := user.Get(r.Context(), claims.Subject)
+			if err != nil {
+				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+				return
+			}
 
-		return next(c)
-	}
+			if usr.Banned {
+				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+				return
+			}
+
+			// Store user in context
+			ec.Set("user", usr)
+
+			next(ec)
+		}),
+	))
 }

@@ -9,6 +9,9 @@ import (
 )
 
 func main() {
+	// Initialize Clerk
+	middleware.InitClerk()
+
 	e := echo.New()
 
 	// Serve static files
@@ -19,8 +22,8 @@ func main() {
 		return templates.Index().Render(c.Request().Context(), c.Response().Writer)
 	})
 
-	// Add SSO callback route
-	e.GET("//sso-callback", func(c echo.Context) error {
+	// SSO callback route
+	e.GET("/sso-callback", func(c echo.Context) error {
 		return c.Redirect(302, "/chat")
 	})
 

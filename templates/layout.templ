@@ -18,23 +18,26 @@ templ Layout() {
         ></script>
         <script>
             window.addEventListener('load', async function () {
-                try {
-                    await window.Clerk.load();
-                    const authDiv = document.getElementById('auth');
-                    
-                    if (window.Clerk.user) {
-                        console.log('User is signed in');
-                        authDiv.innerHTML = '<div id="user-button"></div>';
-                        window.Clerk.mountUserButton(document.getElementById('user-button'));
-                    } else {
-                        console.log('No user signed in');
-                        authDiv.innerHTML = '<div id="sign-in"></div>';
-                        window.Clerk.mountSignIn(document.getElementById('sign-in'));
-                    }
-                } catch (error) {
-                    console.error('Error initializing Clerk:', error);
+                await Clerk.load()
+
+                if (Clerk.user) {
+                document.getElementById('auth').innerHTML = `
+                    <div id="user-button"></div>
+                `
+
+                const userButtonDiv = document.getElementById('user-button')
+
+                Clerk.mountUserButton(userButtonDiv)
+                } else {
+                document.getElementById('auth').innerHTML = `
+                    <div id="sign-in"></div>
+                `
+
+                const signInDiv = document.getElementById('sign-in')
+
+                Clerk.mountSignIn(signInDiv)
                 }
-            });
+            })
         </script>
         <style>
             #auth {
@@ -42,6 +45,9 @@ templ Layout() {
             }
             #user-button {
                 min-width: 200px;
+            }
+            #sign-in {
+                min-height: 600px;
             }
         </style>
         <link rel="stylesheet" href="/static/styles.css">
