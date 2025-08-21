@@ -18,33 +18,61 @@ templ Layout() {
         ></script>
         <script>
             window.addEventListener('load', async function () {
-                await Clerk.load()
+                try {
+                    await window.Clerk.load();
+                    const authDiv = document.getElementById('auth');
+                    
+                    if (window.Clerk.user) {
+                        console.log('User is signed in');
+                        authDiv.innerHTML = '<div id="user-button"></div>';
+                        const userButtonEl = document.getElementById('user-button');
+                        window.Clerk.mountUserButton(userButtonEl);
 
-                if (Clerk.user) {
-                document.getElementById('auth').innerHTML = `
-                    <div id="user-button"></div>
-                `
+                        // Get the session token
+                        const token = await window.Clerk.session.getToken();
+                        console.log('Token received:', token);
 
-                const userButtonDiv = document.getElementById('user-button')
-
-                Clerk.mountUserButton(userButtonDiv)
-                } else {
-                document.getElementById('auth').innerHTML = `
-                    <div id="sign-in"></div>
-                `
-
-                const signInDiv = document.getElementById('sign-in')
-
-                Clerk.mountSignIn(signInDiv)
+                        // Add a link to chat if we're on the home page
+                        if (window.location.pathname === '/') {
+                            const container = document.getElementById('container');
+                            const chatLink = document.createElement('a');
+                            chatLink.href = '/chat';
+                            chatLink.textContent = 'Go to Chat';
+                            chatLink.onclick = async function(e) {
+                                e.preventDefault();
+                                try {
+                                    const response = await fetch('/chat', {
+                                        method: 'GET',
+                                        headers: {
+                                            'Authorization': 'Bearer ' + token
+                                        }
+                                    });
+                                    console.log('Response status:', response.status);
+                                    if (response.ok) {
+                                        window.location.href = '/chat';
+                                    } else {
+                                        console.error('Failed to access chat:', response.status);
+                                    }
+                                } catch (error) {
+                                    console.error('Fetch error:', error);
+                                }
+                            };
+                            container.appendChild(chatLink);
+                        }
+                    } else {
+                        console.log('No user signed in');
+                        authDiv.innerHTML = '<div id="sign-in"></div>';
+                        const signInEl = document.getElementById('sign-in');
+                        window.Clerk.mountSignIn(signInEl);
+                    }
+                } catch (error) {
+                    console.error('Error initializing Clerk:', error);
                 }
-            })
+            });
         </script>
         <style>
             #auth {
                 padding: 1rem;
-            }
-            #user-button {
-                min-width: 200px;
             }
             #sign-in {
                 min-height: 600px;
@@ -54,7 +82,6 @@ templ Layout() {
     </head>
     <body>
         <div id="auth"></div>
-        
         <div id="container">
             { children... }
         </div>
