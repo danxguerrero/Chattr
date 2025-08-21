@@ -1,51 +1,64 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/clerk/clerk-sdk-go/v2"
-	clerkhttp "github.com/clerk/clerk-sdk-go/v2/http"
 	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/labstack/echo/v4"
 )
 
-var clerkClient clerk.Client
-
 func InitClerk() {
-	// Initialize Clerk client with your secret key
 	clerk.SetKey("sk_test_zj0PpSZ82t3zfgtWZSzwnugdsnu1DnkPVK0mz8cVqs")
 }
 
-// RequireAuth adapts Clerk's middleware for Echo
 func RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
-	return echo.WrapHandler(clerkhttp.WithHeaderAuthorization()(
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			c := r.Context()
-			claims, ok := clerk.SessionClaimsFromContext(c)
-			if !ok {
-				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-				return
-			}
+	return func(c echo.Context) error {
+		fmt.Printf("Processing request to: %s\n", c.Request().URL.Path)
 
-			// Get the Echo context
-			ec := r.Context().Value("echo").(echo.Context)
+		// Get the Authorization header
+		authHeader := c.Request().Header.Get("Authorization")
+		fmt.Printf("Authorization header: %s\n", authHeader)
 
-			// Verify the user
-			usr, err := user.Get(r.Context(), claims.Subject)
-			if err != nil {
-				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-				return
-			}
+		if authHeader == "" {
+			fmt.Println("No Authorization header found")
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
 
-			if usr.Banned {
-				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-				return
-			}
+		// Parse the Bearer token
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			fmt.Printf("Invalid Authorization header format: %v\n", authHeader)
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
+		token := parts[1]
+		fmt.Printf("Token received: %s...\n", token[:10])
 
-			// Store user in context
-			ec.Set("user", usr)
+		// Verify the session claims
+		claims, ok := clerk.SessionClaimsFromContext(c.Request().Context())
+		if !ok {
+			fmt.Println("No session claims found")
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
 
-			next(ec)
-		}),
-	))
+		// Verify the user
+		usr, err := user.Get(c.Request().Context(), claims.Subject)
+		if err != nil {
+			fmt.Printf("User verification failed: %v\n", err)
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
+
+		if usr.Banned {
+			fmt.Println("User is banned")
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
+
+		// Store user in context
+		c.Set("user", usr)
+		fmt.Println("Auth successful")
+
+		return next(c)
+	}
 }
